@@ -24,12 +24,17 @@ class FaceDetectorProcessorNew(builder: Builder) : FrameProcessor {
   private val faceDetector: FaceDetector
   val listener: OnFacesDetectedListener
 
+  var pause:Boolean = false
+
   init {
     faceDetector = FaceDetector.create(builder.context)
     listener = builder.listener
   }
 
   override fun invoke(frame: Frame) {
+    if (pause) {
+      return
+    }
     val faces = faceDetector.detectFaces(
         frame.image,
         frame.size.width,

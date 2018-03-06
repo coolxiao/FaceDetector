@@ -15,17 +15,11 @@ interface FaceppApi {
       @Part image_file: MultipartBody.Part): Call<DetectResponse>
 
   @Multipart @POST("search")
-  fun searchFaceForm(@Part("api_key") api_key: String, @Part("api_secret") api_secret: String,
-      @Part image_file: MultipartBody.Part, @Part("faceset_token")
-      faceset_token: String): Call<SearchResponse>
+  fun searchFaceForm(@Part api_key: MultipartBody.Part, @Part api_secret: MultipartBody.Part, @Part
+  faceset_token: MultipartBody.Part, @Part image_file: MultipartBody.Part): Call<SearchResponse>
 
-  @POST("search")
-  fun searchFace(@Body request: SearchRequest): Call<SearchResponse>
-
-//  @POST("faceset/create")
-//  fun createFaceset(@Body request: CreateFaceset): Call<FacesetOperateResponse>
-
-  @POST("faceset/addface")
-  fun addFace(@Body request: AddFaceRequest): Call<FacesetOperateResponse>
+  @Multipart @POST("faceset/addface")
+  fun addFace(@Part api_key: MultipartBody.Part, @Part api_secret: MultipartBody.Part, @Part
+  outer_id: MultipartBody.Part, @Part face_tokens: MultipartBody.Part): Call<FacesetOperateResponse>
 
 }

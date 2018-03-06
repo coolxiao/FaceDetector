@@ -15,10 +15,24 @@
         />
   </io.fotoapparat.facedetector.view.CameraOverlayLayout>
 
-  <Button
-      android:id="@+id/detect_add_face"
+  <LinearLayout
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="Add face"
-      />
+      android:orientation="horizontal"
+      >
+    <Button
+        android:id="@+id/detect_add_face"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add face"
+        />
+
+    <Button
+        android:id="@+id/detect_continue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Continue"
+        />
+  </LinearLayout>
+
 </FrameLayout>

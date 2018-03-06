@@ -2,7 +2,6 @@ package com.kingyun.faceplusdemo
 
 import android.Manifest
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.support.v7.app.AppCompatActivity
@@ -14,12 +13,11 @@ import com.fondesa.kpermissions.extension.permissionsBuilder
 import com.kingyun.faceplusdemo.R.string
 import com.kingyun.faceplusdemo.camera.FaceDetectorProcessorNew
 import com.kingyun.faceplusdemo.camera.FaceDetectorProcessorNew.OnFacesDetectedListener
-import com.kingyun.faceplusdemo.facepp.AddFaceRequest
 import com.kingyun.faceplusdemo.facepp.DetectResponse
 import com.kingyun.faceplusdemo.facepp.Facepp
 import com.kingyun.faceplusdemo.facepp.FaceppApi
 import com.kingyun.faceplusdemo.facepp.FacesetOperateResponse
-import com.kingyun.faceplusdemo.facepp.SearchRequest
+import com.kingyun.faceplusdemo.facepp.SearchResponse
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.configuration.CameraConfiguration
 import io.fotoapparat.facedetector.Rectangle
@@ -27,9 +25,10 @@ import io.fotoapparat.log.logcat
 import io.fotoapparat.log.loggers
 import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.result.WhenDoneListener
-import io.fotoapparat.selector.back
+import io.fotoapparat.selector.front
 import kotlinx.android.synthetic.main.activity_detect_face.camera_view
 import kotlinx.android.synthetic.main.activity_detect_face.detect_add_face
+import kotlinx.android.synthetic.main.activity_detect_face.detect_continue
 import okhttp3.MediaType
 import okhttp3.MultipartBody.Part
 import okhttp3.RequestBody
@@ -47,26 +46,32 @@ class FaceDetectActivity : AppCompatActivity() {
 
   private lateinit var fotoapparat: Fotoapparat
 
+  private lateinit var faceDetectorProcessor: FaceDetectorProcessorNew
+
   override fun onCreate(savedInstanceState: Bundle?) {
     requestWindowFeature(Window.FEATURE_NO_TITLE)
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_detect_face)
-
+    detect_continue.setOnClickListener {
+      faceDetectorProcessor.pause = false
+    }
     detect_add_face.setOnClickListener {
       val file = File(ctx.getExternalFilesDir(null), "newface.jpg")
       fotoapparat.takePicture().saveToFile(file).whenDone(object : WhenDoneListener<Unit> {
         override fun whenDone(it: Unit?) {
           Luban.with(ctx)
               .load(file)
-              .setCompressListener(object: OnCompressListener {
+              .setCompressListener(object : OnCompressListener {
                 override fun onSuccess(file: File?) {
                   if (file == null) {
                     return
                   }
 
+                  val apiKeyPart = Part.createFormData("api_key", Facepp.API_KEY)
+                  val apiSecretPart = Part.createFormData("api_secret", Facepp.API_SECRET)
                   createService(FaceppApi::class.java)
-                      .detectFaceForm(Part.createFormData("api_key", Facepp.API_KEY),
-                          Part.createFormData("api_secret", Facepp.API_SECRET),
+                      .detectFaceForm(apiKeyPart,
+                          apiSecretPart,
                           Part.createFormData("image_file", "image_file", RequestBody.create(
                               MediaType.parse("image/*"), file)))
                       .enqueue(object : Callback<DetectResponse?> {
@@ -86,9 +91,11 @@ class FaceDetectActivity : AppCompatActivity() {
                               }
                               return@let
                             }
-                            if (!it.error_message.isNullOrBlank()) {
-                              toast(it.error_message ?: "")
-                              return@let
+                            if (response.errorBody() != null) {
+                              Handler(Looper.getMainLooper()).post {
+                                toast("发生错误: " + response.errorBody()?.string())
+                              }
+                              return
                             }
 
                             val strBuilder = StringBuilder()
@@ -99,8 +106,9 @@ class FaceDetectActivity : AppCompatActivity() {
                               strBuilder.append(it.face_token)
                             }
                             createService(FaceppApi::class.java)
-                                .addFace(AddFaceRequest(Facepp.API_KEY, Facepp.API_SECRET, "som_set",
-                                    strBuilder.toString()))
+                                .addFace(apiKeyPart, apiSecretPart,
+                                    Part.createFormData("outer_id", "som_set"),
+                                    Part.createFormData("face_tokens", strBuilder.toString()))
                                 .enqueue(object : Callback<FacesetOperateResponse?> {
                                   override fun onFailure(call: Call<FacesetOperateResponse?>?,
                                       t: Throwable?) {
@@ -118,8 +126,11 @@ class FaceDetectActivity : AppCompatActivity() {
                                           toast("add success")
                                         }
                                       }
-                                      if (!it.error_message.isNullOrBlank()) {
-                                        toast(it.error_message ?: "")
+                                      if (response.errorBody() != null) {
+                                        Handler(Looper.getMainLooper()).post {
+                                          toast("发生错误: " + response.errorBody()?.string())
+                                        }
+                                        return
                                       }
                                     }
                                   }
@@ -180,17 +191,48 @@ class FaceDetectActivity : AppCompatActivity() {
 
   private fun initCamera() {
     if (!this::fotoapparat.isInitialized) {
-      val faceDetectorProcessor = FaceDetectorProcessorNew.Builder(this).apply {
+      faceDetectorProcessor = FaceDetectorProcessorNew.Builder(this).apply {
         listener = object : OnFacesDetectedListener {
           override fun onFacesDetected(
               faces: List<Rectangle>, imageBytes: ByteArray) {
-//            createService(FaceppApi::class.java)
-//                .searchFace(SearchRequest(
-//                    Facepp.API_KEY,
-//                    Facepp.API_SECRET,
-//                    Base64.encodeToString(imageBytes, Base64.NO_WRAP),
-//                    "som_set"
-//                ))
+            val apiKeyPart = Part.createFormData("api_key", Facepp.API_KEY)
+            val apiSecretPart = Part.createFormData("api_secret", Facepp.API_SECRET)
+            faceDetectorProcessor.pause = true
+            createService(FaceppApi::class.java)
+                .searchFaceForm(apiKeyPart, apiSecretPart, Part.createFormData("image_base64",
+                    Base64.encodeToString(imageBytes, Base64.NO_WRAP)),
+                    Part.createFormData("outer_id", "som_set")
+                )
+                .enqueue(object : Callback<SearchResponse?> {
+                  override fun onFailure(call: Call<SearchResponse?>?, t: Throwable?) {
+                    t?.printStackTrace()
+                    Handler(Looper.getMainLooper()).post {
+                      toast("cannot connect to service")
+                    }
+                  }
+
+                  override fun onResponse(call: Call<SearchResponse?>?,
+                      response: Response<SearchResponse?>?) {
+                    if (response?.body()?.faces?.isEmpty() == true) {
+                      Handler(Looper.getMainLooper()).post {
+                        toast("没有找到人脸")
+                      }
+                      return
+                    }
+                    if (response?.errorBody() != null) {
+                      Handler(Looper.getMainLooper()).post {
+                        toast("发生错误: " + response.errorBody()?.string())
+                      }
+                      return
+                    }
+
+                    val confidence = response?.body()?.results?.get(0)?.confidence
+                    Handler(Looper.getMainLooper()).post {
+                      toast("人脸可信度: " + confidence)
+                    }
+                  }
+                })
+
           }
         }
       }.build()
@@ -200,7 +242,7 @@ class FaceDetectActivity : AppCompatActivity() {
           context = this,
           view = camera_view,
           scaleType = ScaleType.CenterCrop,
-          lensPosition = back(),
+          lensPosition = front(),
           cameraConfiguration = configuration,
           logger = loggers(logcat())
       )
