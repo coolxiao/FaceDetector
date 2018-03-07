@@ -11,6 +11,7 @@ import io.fotoapparat.util.FrameProcessor
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.media.ExifInterface
 import java.io.ByteArrayOutputStream
 
 
@@ -22,9 +23,11 @@ class FaceDetectorProcessorNew(builder: Builder) : FrameProcessor {
   private val handler = Handler(Looper.getMainLooper())
 
   private val faceDetector: FaceDetector
-  val listener: OnFacesDetectedListener
+  private val listener: OnFacesDetectedListener
 
-  var pause:Boolean = false
+  var pause: Boolean = false
+    @Synchronized get
+    @Synchronized set
 
   init {
     faceDetector = FaceDetector.create(builder.context)
