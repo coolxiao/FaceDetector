@@ -1,15 +1,11 @@
 package com.kingyun.faceplusdemo
 
 import android.Manifest
-import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.support.v7.app.AppCompatActivity
-import android.util.Base64
 import android.view.Window
 import android.widget.Toast
 import com.fondesa.kpermissions.extension.listeners
@@ -198,20 +194,18 @@ class FaceDetectActivity : AppCompatActivity() {
             val bitmapBytes = ByteArrayOutputStream()
                 .also { Facepp.portraitBitmap(imageBytes).compress(JPEG, 90, it) }
                 .toByteArray()
-            val base64Img = Base64.encodeToString(bitmapBytes, Base64.NO_WRAP)
 
-            // TODO: 18-3-7  debug output
+            // save file
             val file = File(ctx.getExternalFilesDir(null), "searchface.jpg")
-            val fileStream = FileOutputStream(file)
-            fileStream.write(bitmapBytes)
-            fileStream.close()
-            // TODO: 18-3-7 debug output end
+            FileOutputStream(file).buffered().use { it.write(bitmapBytes) }
 
             val apiKeyPart = Part.createFormData("api_key", Facepp.API_KEY)
             val apiSecretPart = Part.createFormData("api_secret", Facepp.API_SECRET)
             createService(FaceppApi::class.java)
-                .searchFaceForm(apiKeyPart, apiSecretPart, Part.createFormData("image_base64",
-                    base64Img), Part.createFormData("outer_id", "som_set")
+                .searchFaceForm(apiKeyPart, apiSecretPart,
+                    Part.createFormData("image_file", "image_file",
+                        RequestBody.create(MediaType.parse("image/*"), file)),
+                    Part.createFormData("outer_id", "som_set")
                 )
                 .enqueue(object : Callback<SearchResponse?> {
                   override fun onFailure(call: Call<SearchResponse?>?, t: Throwable?) {
