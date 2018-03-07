@@ -1,4 +1,4 @@
-package com.kingyun.faceplusdemo.facepp
+package com.kingyun.facedetector.http
 
 import com.kingyun.facedetector.model.Face
 
@@ -7,5 +7,4 @@ data class DetectResponse(
     val time_used: Int,
     val error_message: String?,
     val image_id:String?,
-    val faces: List<Face>
-    )
+    val faces: List<Face>)

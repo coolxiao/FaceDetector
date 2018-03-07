@@ -1,0 +1,40 @@
+apply plugin: 'com.android.library'
+
+android {
+  compileSdkVersion sdk_version
+
+  defaultConfig {
+    minSdkVersion min_sdk_version
+    targetSdkVersion sdk_version
+    versionCode 1
+    versionName "1.0"
+
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+  }
+}
+
+def okhttp_ver = "3.10.0"
+def anko_ver = "0.10.4"
+
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+  implementation "org.jetbrains.anko:anko-appcompat-v7-commons:$anko_ver"
+  implementation "com.squareup.okhttp3:okhttp:${okhttp_ver}"
+  implementation "com.squareup.okhttp3:logging-interceptor:${okhttp_ver}"
+  implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+  implementation "com.squareup.retrofit2:converter-gson:2.3.0"
+  implementation 'com.google.code.gson:gson:2.8.2'
+  implementation('com.github.fondesa:kpermissions:1.0.0') {
+    exclude group: "com.android.support"
+  }
+
+  api 'io.fotoapparat.fotoapparat:library:2.2.0'
+  api 'io.fotoapparat:facedetector:1.0.0'
+}

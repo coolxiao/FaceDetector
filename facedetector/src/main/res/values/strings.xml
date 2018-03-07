@@ -1,0 +1,4 @@
+<resources>
+  <string name="msg_loading">Please wait</string>
+  <string name="msg_permission_required">该操作需要权限才能继续</string>
+</resources>

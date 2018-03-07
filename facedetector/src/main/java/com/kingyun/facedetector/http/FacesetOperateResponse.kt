@@ -1,4 +1,4 @@
-package com.kingyun.faceplusdemo.facepp
+package com.kingyun.facedetector.http
 
 import com.kingyun.facedetector.model.FailureDetail
 
@@ -11,5 +11,4 @@ class FacesetOperateResponse(
     val face_count: Int,
     val face_added: Int,
     val face_removed: Int,
-    val failure_detail: List<FailureDetail>?
-)
+    val failure_detail: List<FailureDetail>?)

@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/FacePlusDemo.iml" filepath="$PROJECT_DIR$/FacePlusDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/facedetector/facedetector.iml" filepath="$PROJECT_DIR$/facedetector/facedetector.iml" />
     </modules>
   </component>
 </project>
