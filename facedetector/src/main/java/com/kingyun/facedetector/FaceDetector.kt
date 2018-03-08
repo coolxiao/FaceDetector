@@ -7,15 +7,11 @@ import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.widget.Toast
 import com.fondesa.kpermissions.extension.listeners
 import com.fondesa.kpermissions.extension.permissionsBuilder
 import com.kingyun.facedetector.FaceProcessor.OnFacesDetectedListener
-import com.kingyun.facedetector.http.CommonApi
-import com.kingyun.facedetector.http.SearchResponse
-import com.kingyun.facedetector.http.apiKeyPart
-import com.kingyun.facedetector.http.apiSecretPart
 import com.kingyun.facedetector.http.createFileForm
-import com.kingyun.facedetector.http.createService
 import com.kingyun.facedetector.http.outerIdPart
 import com.kingyun.facedetector.tramsform.ErrorTransform
 import com.kingyun.facedetector.tramsform.SaveBitmapTransform
@@ -31,13 +27,9 @@ import io.fotoapparat.parameter.ScaleType
 import io.fotoapparat.result.PendingResult
 import io.fotoapparat.selector.back
 import io.fotoapparat.selector.front
+import io.fotoapparat.util.FrameProcessor
 import io.fotoapparat.view.CameraView
 import okhttp3.MediaType
-import org.jetbrains.anko.runOnUiThread
-import org.jetbrains.anko.toast
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -53,7 +45,9 @@ class FaceDetector(activity: Activity) {
   }
 
   /**
-   * @param receiver true if permission granted,
+   * It is safe to wrap with [initCamera] to grant permission when it's been used on Marshmallow devices
+   * @param receiver true if permission granted, false if denied. When it's returning null which means
+   * should show rational.
    */
   fun requestCameraPermission(activity: Activity, receiver: (Boolean?) -> Unit) {
     activity.run {
@@ -73,38 +67,45 @@ class FaceDetector(activity: Activity) {
     }
   }
 
-  fun initCamera(cameraView: CameraView,
-      callback: ((List<Rectangle>, ByteArray) -> Unit)? = null): Fotoapparat {
+  /**
+   * MUST be called before everything.
+   * @param configuration customize camera configuration
+   * @param faceDetectAction callback when camera detect face
+   * @see [pauseDetect] for pause detecting
+   * @see [resumeDetect] for resume paused detection
+   */
+  fun initCamera(cameraView: CameraView, configuration: CameraConfiguration? = null,
+      faceDetectAction: ((List<Rectangle>, ByteArray) -> Unit)? = null) {
     val ctx = context
     val processor = ctx?.let { FaceProcessor(ctx) }?.apply {
       listener = object : OnFacesDetectedListener {
         override fun onFacesDetected(faces: List<Rectangle>, imageBytes: ByteArray) {
-          callback?.invoke(faces, imageBytes) ?: defaultFacesDetectAction(faces, imageBytes)
+          faceDetectAction?.invoke(faces, imageBytes) ?: defaultFacesDetectAction(faces, imageBytes)
         }
       }
       faceDetectorProcessor = this
     } ?: throw RuntimeException("")
 
-    val configuration = CameraConfiguration(
-        frameProcessor = processor,
-        jpegQuality = { 85 },
-        pictureResolution = { Resolution(1280, 960) },
-        focusMode = { Auto }
-    )
-    return Fotoapparat(
+    fotoapparat = Fotoapparat(
         context = ctx,
         view = cameraView,
         scaleType = ScaleType.CenterCrop,
         lensPosition = front(),
-        cameraConfiguration = configuration,
+        cameraConfiguration = configuration ?: getDefaultCameraConfiguration(processor),
         logger = loggers(logcat())
     )
   }
 
+  /**
+   * start camera and ready to detect faces
+   */
   fun start() {
     fotoapparat?.start()
   }
 
+  /**
+   * stop camera
+   */
   fun stop() {
     fotoapparat?.stop()
   }
@@ -141,11 +142,9 @@ class FaceDetector(activity: Activity) {
     fotoapparat?.setZoom(zoom)
   }
 
-  private fun defaultFacesDetectAction(
-      faces: List<Rectangle>,
-      imageBytes: ByteArray) {
+  fun defaultFacesDetectAction(faces: List<Rectangle>, imageBytes: ByteArray) {
     val ctx = context ?: return
-    faceDetectorProcessor?.pause()
+    pauseDetect()
 
     // convert bitmap
     val bitmapBytes = ByteArrayOutputStream()
@@ -157,42 +156,25 @@ class FaceDetector(activity: Activity) {
     FileOutputStream(file).buffered().use { it.write(bitmapBytes) }
 
     val imageType = MediaType.parse("image/*")
-    createService(CommonApi::class.java)
-        .searchFace(apiKeyPart, apiSecretPart,
-            outerIdPart,
-            createFileForm("image_file", file, imageType)
-        )
-        .enqueue(object : Callback<SearchResponse?> {
-          override fun onFailure(call: Call<SearchResponse?>?, t: Throwable?) {
-            t?.printStackTrace()
-            ctx.runOnUiThread {
-              toast("cannot connect to service")
-            }
-          }
+    FaceServer.search(outerIdPart, createFileForm("image_file", file, imageType)) {
+      if (it.success) {
+        val result = it.data?.results?.get(0)
+        val userId = if (result?.user_id.isNullOrBlank()) "未知" else result?.user_id
+        val confidence = result?.confidence
 
-          override fun onResponse(call: Call<SearchResponse?>?,
-              response: Response<SearchResponse?>?) {
-            if (response?.body()?.faces?.isEmpty() == true) {
-              ctx.runOnUiThread {
-                toast("没有找到人脸")
-              }
-              return
-            }
-            if (response?.errorBody() != null) {
-              ctx.runOnUiThread {
-                toast("发生错误: " + response.errorBody()?.string())
-              }
-              return
-            }
-
-            val confidence = response?.body()?.results?.get(0)?.confidence
-            ctx.runOnUiThread {
-              toast("人脸可信度: " + confidence)
-            }
-          }
-        })
-
+        Toast.makeText(context, "人脸可能是$userId，可信度：$confidence", Toast.LENGTH_SHORT).show()
+      } else {
+        Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+      }
+    }
   }
+
+  private fun getDefaultCameraConfiguration(frameProcessor: FrameProcessor) = CameraConfiguration(
+      frameProcessor = frameProcessor,
+      jpegQuality = { 85 },
+      pictureResolution = { Resolution(1280, 960) },
+      focusMode = { Auto }
+  )
 
   companion object {
     fun portraitBitmap(imageByteArray: ByteArray, rotate: Float = -90F): Bitmap {
