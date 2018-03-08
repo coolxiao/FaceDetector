@@ -1,6 +1,13 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+def gitSha = 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim()
+def fix = 0
+def gitCount = fix + Integer.parseInt("git rev-list --count ${gitSha}"
+    .execute([], project.rootDir).text.trim())
 
 android {
   compileSdkVersion sdk_version
@@ -8,8 +15,8 @@ android {
   defaultConfig {
     minSdkVersion min_sdk_version
     targetSdkVersion sdk_version
-    versionCode 1
-    versionName "1.0"
+    versionCode gitCount
+    versionName "1.0.0"
 
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
@@ -19,6 +26,10 @@ android {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
   }
 }
 
@@ -39,4 +50,44 @@ dependencies {
 
   api 'io.fotoapparat.fotoapparat:library:2.2.0'
   api 'io.fotoapparat:facedetector:1.0.0'
+}
+
+repositories {
+  maven() { url "${nexus_public}" }
+}
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      repository(url: "${nexus_releases}") {
+        authentication(userName: nexusUsername, password: nexusPassword)
+        pom.groupId = lib_groupId
+        pom.artifactId = lib_artifactId
+        pom.version = android.defaultConfig.versionName
+      }
+      snapshotRepository(url: "${nexus_snapshots}") {
+        authentication(userName: nexusUsername, password: nexusPassword)
+        pom.groupId = lib_groupId
+        pom.artifactId = lib_artifactId
+        pom.version = android.defaultConfig.versionName
+      }
+    }
+  }
+}
+task sourcesJar(type: Jar) {
+  from android.sourceSets.main.java.srcDirs
+  classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+  source = android.sourceSets.main.java.srcDirs
+  classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+artifacts {
+  archives sourcesJar
 }
