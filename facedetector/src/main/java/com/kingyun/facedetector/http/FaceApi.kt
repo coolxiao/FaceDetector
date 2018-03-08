@@ -19,10 +19,16 @@ interface FaceApi {
   ): Call<FacesetOperateResponse>
 
   @Multipart @POST("faceset/addface")
-  fun addFace(@Part api_key: ApiKeyPart, @Part api_secret: ApiSecretPart, @Part
-  outer_id: MultipartBody.Part, @Part face_tokens: MultipartBody.Part): Call<FacesetOperateResponse>
+  fun addFace(
+      @Part api_key: ApiKeyPart,
+      @Part api_secret: ApiSecretPart,
+      @Part outer_id: MultipartBody.Part,
+      @Part face_tokens: MultipartBody.Part): Call<FacesetOperateResponse>
 
-  fun setUserId() {
-
-  }
+  @Multipart @POST("face/setuserid")
+  fun setUserId(
+      @Part api_key: ApiKeyPart,
+      @Part api_secret: ApiSecretPart,
+      @Part user_id: MultipartBody.Part,
+      @Part face_token: MultipartBody.Part): Call<FacesetOperateResponse>
 }

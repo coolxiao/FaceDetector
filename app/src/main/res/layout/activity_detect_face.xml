@@ -21,6 +21,13 @@
       android:orientation="horizontal"
       >
     <Button
+        android:id="@+id/detect_user_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set ID"
+        />
+
+    <Button
         android:id="@+id/detect_add_face"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -33,6 +40,7 @@
         android:layout_height="wrap_content"
         android:text="Continue"
         />
+
     <Button
         android:id="@+id/detect_flip"
         android:layout_width="wrap_content"

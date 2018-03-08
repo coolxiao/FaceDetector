@@ -4,6 +4,7 @@ import android.util.LruCache
 import com.google.gson.GsonBuilder
 import com.kingyun.facedetector.http.HttpKt.API_KEY
 import com.kingyun.facedetector.http.HttpKt.API_SECRET
+import com.kingyun.facedetector.http.HttpKt.TEST_OUTER_ID
 import com.kingyun.facedetector.http.HttpKt.apiCache
 import com.kingyun.facedetector.http.HttpKt.retrofit
 import okhttp3.MediaType
@@ -20,6 +21,9 @@ object HttpKt {
   private const val API_URL = "https://api-cn.faceplusplus.com/facepp/v3/"
   internal const val API_KEY = "_UPk1bWhAldRBsqoDqPoQxxhqVLpqpbG"
   internal const val API_SECRET = "7-yV_GKRTYmxGI7bPUUu-nZ_JjQnaZDz"
+
+  // TODO: 18-3-8 temporary outer id
+  const val TEST_OUTER_ID = "som_set"
 
   internal val apiCache: LruCache<String, Any> = LruCache(10)
   val retrofit: Retrofit by lazy {
@@ -47,10 +51,10 @@ typealias FilePart = Part
 
 val apiKeyPart = Part.createFormData("api_key", API_KEY) as ApiSecretPart
 val apiSecretPart = Part.createFormData("api_secret", API_SECRET) as ApiSecretPart
-val outerIdPart = Part.createFormData("outer_id", "som_set")!!
+val outerIdPart = Part.createFormData("outer_id", TEST_OUTER_ID)!!
 
 fun createFileForm(name: String, file: File,
-    mediaType: MediaType? = MediaType.parse("*/*")): Part {
+    mediaType: MediaType? = MediaType.parse("image/*")): Part {
   return Part.createFormData(name, file.name, RequestBody.create(mediaType, file))
 }
 

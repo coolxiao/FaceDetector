@@ -9,9 +9,9 @@ import retrofit2.http.Part
 interface CommonApi {
   @Multipart @POST("detect")
   fun detectFace(@Part api_key: ApiKeyPart, @Part api_secret: ApiSecretPart,
-      @Part image_file: MultipartBody.Part): Call<DetectResponse>
+      @Part image_file: FilePart): Call<DetectResponse>
 
   @Multipart @POST("search")
   fun searchFace(@Part api_key: ApiKeyPart, @Part api_secret: ApiSecretPart, @Part
-  outer_id: MultipartBody.Part, @Part image_file: MultipartBody.Part): Call<SearchResponse>
+  outer_id: MultipartBody.Part, @Part image_file: FilePart): Call<SearchResponse>
 }

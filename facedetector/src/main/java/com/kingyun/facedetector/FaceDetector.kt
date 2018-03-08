@@ -11,8 +11,7 @@ import android.widget.Toast
 import com.fondesa.kpermissions.extension.listeners
 import com.fondesa.kpermissions.extension.permissionsBuilder
 import com.kingyun.facedetector.FaceProcessor.OnFacesDetectedListener
-import com.kingyun.facedetector.http.createFileForm
-import com.kingyun.facedetector.http.outerIdPart
+import com.kingyun.facedetector.http.HttpKt.TEST_OUTER_ID
 import com.kingyun.facedetector.tramsform.ErrorTransform
 import com.kingyun.facedetector.tramsform.SaveBitmapTransform
 import io.fotoapparat.Fotoapparat
@@ -29,7 +28,6 @@ import io.fotoapparat.selector.back
 import io.fotoapparat.selector.front
 import io.fotoapparat.util.FrameProcessor
 import io.fotoapparat.view.CameraView
-import okhttp3.MediaType
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -80,7 +78,8 @@ class FaceDetector(activity: Activity) {
     val processor = ctx?.let { FaceProcessor(ctx) }?.apply {
       listener = object : OnFacesDetectedListener {
         override fun onFacesDetected(faces: List<Rectangle>, imageBytes: ByteArray) {
-          faceDetectAction?.invoke(faces, imageBytes) ?: defaultFacesDetectAction(faces, imageBytes)
+          faceDetectAction?.invoke(faces, imageBytes) ?: defaultFacesDetectAction(TEST_OUTER_ID,
+              faces, imageBytes)
         }
       }
       faceDetectorProcessor = this
@@ -142,7 +141,7 @@ class FaceDetector(activity: Activity) {
     fotoapparat?.setZoom(zoom)
   }
 
-  fun defaultFacesDetectAction(faces: List<Rectangle>, imageBytes: ByteArray) {
+  fun defaultFacesDetectAction(outerId: String, faces: List<Rectangle>, imageBytes: ByteArray) {
     val ctx = context ?: return
     pauseDetect()
 
@@ -155,8 +154,7 @@ class FaceDetector(activity: Activity) {
     val file = File(ctx.getExternalFilesDir(null), "searchface.jpg")
     FileOutputStream(file).buffered().use { it.write(bitmapBytes) }
 
-    val imageType = MediaType.parse("image/*")
-    FaceServer.search(outerIdPart, createFileForm("image_file", file, imageType)) {
+    FaceServer.search(outerId, file) {
       if (it.success) {
         val result = it.data?.results?.get(0)
         val userId = if (result?.user_id.isNullOrBlank()) "未知" else result?.user_id
