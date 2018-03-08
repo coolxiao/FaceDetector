@@ -13,10 +13,10 @@ android {
   compileSdkVersion sdk_version
 
   defaultConfig {
-    minSdkVersion min_sdk_version
+    minSdkVersion 16
     targetSdkVersion sdk_version
     versionCode gitCount
-    versionName "1.0.0"
+    versionName "1.0.1"
 
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
