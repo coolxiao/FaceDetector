@@ -72,7 +72,7 @@ class FaceDetectActivity : AppCompatActivity() {
 
   private fun addFace(file: File?) {
     if (file != null) {
-      FaceServer.addFace(userId, file) { result ->
+      FaceServer.addFace(file, userId) { result ->
         if (result.success) {
           Toast.makeText(this, "人脸添加成功", Toast.LENGTH_SHORT).show()
         } else {

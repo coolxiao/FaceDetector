@@ -86,7 +86,7 @@ object FaceServer {
         })
   }
 
-  fun addFace(userId: String, imageFile: File, callback: (SimpleHttpResult) -> Unit) {
+  fun addFace(imageFile: File, userId: String = "", callback: (SimpleHttpResult) -> Unit) {
     detect(imageFile) {
       if (it.success) {
         it.data?.faces?.let {
@@ -101,11 +101,15 @@ object FaceServer {
             } else it[0]
 
             val faceToken = face.face_token
-            setUserId(userId, faceToken) {
-              if (it.success) {
-                addFaceset(faceToken, callback)
-              } else {
-                callback(it)
+            if (userId.isBlank()) {
+              addFaceset(faceToken, callback)
+            } else {
+              setUserId(userId, faceToken) {
+                if (it.success) {
+                  addFaceset(faceToken, callback)
+                } else {
+                  callback(it)
+                }
               }
             }
           }
