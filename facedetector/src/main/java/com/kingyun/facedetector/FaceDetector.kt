@@ -72,14 +72,17 @@ class FaceDetector(activity: Activity) {
    * @see [pauseDetect] for pause detecting
    * @see [resumeDetect] for resume paused detection
    */
-  fun initCamera(cameraView: CameraView, configuration: CameraConfiguration? = null,
+  @JvmOverloads fun initCamera(cameraView: CameraView, configuration: CameraConfiguration? = null,
       faceDetectAction: ((List<Rectangle>, ByteArray) -> Unit)? = null) {
     val ctx = context
     val processor = ctx?.let { FaceProcessor(ctx) }?.apply {
       listener = object : OnFacesDetectedListener {
         override fun onFacesDetected(faces: List<Rectangle>, imageBytes: ByteArray) {
-          faceDetectAction?.invoke(faces, imageBytes) ?: defaultFacesDetectAction(TEST_OUTER_ID,
-              faces, imageBytes)
+          if (faceDetectAction == null) {
+            defaultFacesDetectAction(TEST_OUTER_ID, faces, imageBytes)
+          } else {
+            faceDetectAction.invoke(faces, imageBytes)
+          }
         }
       }
       faceDetectorProcessor = this
