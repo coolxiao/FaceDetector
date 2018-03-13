@@ -49,7 +49,7 @@ dependencies {
   }
 
   api 'io.fotoapparat.fotoapparat:library:2.2.0'
-  api 'io.fotoapparat:facedetector:1.0.0'
+  api 'com.kingyun:io.fotoapparat.facedetector:1.0.0'
 }
 
 repositories {
