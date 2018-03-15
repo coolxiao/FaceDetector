@@ -18,7 +18,8 @@ object HttpKt {
   private const val API_URL = "https://api-cn.faceplusplus.com/facepp/v3/"
 
   internal val apiCache: LruCache<String, Any> = LruCache(10)
-  val retrofit: Retrofit by lazy {
+
+  @JvmStatic val retrofit: Retrofit by lazy {
     val logging = HttpLoggingInterceptor()
     logging.level = HttpLoggingInterceptor.Level.BODY
     val httpClient = OkHttpClient.Builder()

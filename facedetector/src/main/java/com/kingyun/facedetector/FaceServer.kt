@@ -37,7 +37,7 @@ object FaceServer {
   /**
    * set server key and secret, call before [FaceDetector] init
    */
-  fun init(apiKey: String, apiSecret: String) {
+  @JvmStatic fun init(apiKey: String, apiSecret: String) {
     API_KEY = apiKey
     API_SECRET = apiSecret
   }
@@ -45,11 +45,11 @@ object FaceServer {
   /**
    * set server faceset outer id, call before [FaceDetector] init
    */
-  fun setOuterId(outerId: String) {
+  @JvmStatic fun setOuterId(outerId: String) {
     FACESET_OUTER_ID = outerId
   }
 
-  fun detect(imageFile: File, callback: (HttpResult<DetectResponse>) -> Unit) {
+  @JvmStatic fun detect(imageFile: File, callback: (HttpResult<DetectResponse>) -> Unit) {
     val filePart = createFileForm("image_file", imageFile)
     createService(CommonApi::class.java)
         .detectFace(apiKeyPart, apiSecretPart, filePart)
@@ -79,7 +79,7 @@ object FaceServer {
         })
   }
 
-  fun search(outerId: String, imageFile: File,
+  @JvmStatic fun search(outerId: String, imageFile: File,
       callback: (HttpResult<SearchResponse>) -> Unit) {
     val filePart = createFileForm("image_file", imageFile)
     val outerIdPart = Part.createFormData("outer_id", outerId)
@@ -110,7 +110,7 @@ object FaceServer {
         })
   }
 
-  fun addFace(imageFile: File, userId: String = "", callback: (SimpleHttpResult) -> Unit) {
+  @JvmStatic fun addFace(imageFile: File, userId: String = "", callback: (SimpleHttpResult) -> Unit) {
     detect(imageFile) {
       if (it.success) {
         it.data?.faces?.let {
@@ -144,7 +144,7 @@ object FaceServer {
     }
   }
 
-  fun setUserId(userId: String, faceToken: String, callback: (SimpleHttpResult) -> Unit) {
+  @JvmStatic fun setUserId(userId: String, faceToken: String, callback: (SimpleHttpResult) -> Unit) {
     val userIdPart = Part.createFormData("user_id", userId)
     val faceTokenPart = Part.createFormData("face_token", faceToken)
     createService(FaceApi::class.java)
@@ -169,7 +169,7 @@ object FaceServer {
         })
   }
 
-  fun addFaceset(faceTokens: String, callback: (SimpleHttpResult) -> Unit) {
+  @JvmStatic fun addFaceset(faceTokens: String, callback: (SimpleHttpResult) -> Unit) {
     createService(FaceApi::class.java)
         .addFace(apiKeyPart, apiSecretPart, outerIdPart,
             MultipartBody.Part.createFormData("face_tokens", faceTokens))
@@ -197,7 +197,7 @@ object FaceServer {
         })
   }
 
-  fun runOnUiThread(receiver: () -> Unit) {
+  private fun runOnUiThread(receiver: () -> Unit) {
     if (Looper.getMainLooper().thread == Thread.currentThread()) {
       receiver()
     } else {
