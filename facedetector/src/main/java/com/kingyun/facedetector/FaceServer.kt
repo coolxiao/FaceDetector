@@ -2,17 +2,17 @@ package com.kingyun.facedetector
 
 import android.os.Handler
 import android.os.Looper
+import com.kingyun.facedetector.FaceServer.API_KEY
+import com.kingyun.facedetector.FaceServer.API_SECRET
+import com.kingyun.facedetector.FaceServer.FACESET_OUTER_ID
 import com.kingyun.facedetector.FaceServer.HttpResult
 import com.kingyun.facedetector.http.CommonApi
 import com.kingyun.facedetector.http.DetectResponse
 import com.kingyun.facedetector.http.FaceApi
 import com.kingyun.facedetector.http.FacesetOperateResponse
 import com.kingyun.facedetector.http.SearchResponse
-import com.kingyun.facedetector.http.apiKeyPart
-import com.kingyun.facedetector.http.apiSecretPart
 import com.kingyun.facedetector.http.createFileForm
 import com.kingyun.facedetector.http.createService
-import com.kingyun.facedetector.http.outerIdPart
 import okhttp3.MultipartBody
 import okhttp3.MultipartBody.Part
 import retrofit2.Call
@@ -21,9 +21,33 @@ import retrofit2.Response
 import java.io.File
 
 typealias SimpleHttpResult = HttpResult<Any>
+typealias ApiKeyPart = Part
+typealias ApiSecretPart = Part
+typealias FilePart = Part
 
 object FaceServer {
+  internal var API_KEY = "_UPk1bWhAldRBsqoDqPoQxxhqVLpqpbG"
+  internal var API_SECRET = "7-yV_GKRTYmxGI7bPUUu-nZ_JjQnaZDz"
+  // TODO: 18-3-8 temporary outer id
+  var FACESET_OUTER_ID = "som_set"
+    private set
+
   private val handler = Handler(Looper.getMainLooper())
+
+  /**
+   * set server key and secret, call before [FaceDetector] init
+   */
+  fun init(apiKey: String, apiSecret: String) {
+    API_KEY = apiKey
+    API_SECRET = apiSecret
+  }
+
+  /**
+   * set server faceset outer id, call before [FaceDetector] init
+   */
+  fun setOuterId(outerId: String) {
+    FACESET_OUTER_ID = outerId
+  }
 
   fun detect(imageFile: File, callback: (HttpResult<DetectResponse>) -> Unit) {
     val filePart = createFileForm("image_file", imageFile)
@@ -183,3 +207,7 @@ object FaceServer {
 
   class HttpResult<out T>(val success: Boolean, val message: String? = null, val data: T? = null)
 }
+
+val apiKeyPart = Part.createFormData("api_key", API_KEY) as ApiSecretPart
+val apiSecretPart = Part.createFormData("api_secret", API_SECRET) as ApiSecretPart
+val outerIdPart = Part.createFormData("outer_id", FACESET_OUTER_ID) as Part

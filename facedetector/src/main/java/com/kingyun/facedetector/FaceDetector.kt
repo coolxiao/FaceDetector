@@ -11,7 +11,7 @@ import android.widget.Toast
 import com.fondesa.kpermissions.extension.listeners
 import com.fondesa.kpermissions.extension.permissionsBuilder
 import com.kingyun.facedetector.FaceProcessor.OnFacesDetectedListener
-import com.kingyun.facedetector.http.HttpKt.TEST_OUTER_ID
+import com.kingyun.facedetector.FaceServer.FACESET_OUTER_ID
 import com.kingyun.facedetector.tramsform.ErrorTransform
 import com.kingyun.facedetector.tramsform.SaveBitmapTransform
 import io.fotoapparat.Fotoapparat
@@ -79,7 +79,7 @@ class FaceDetector(activity: Activity) {
       listener = object : OnFacesDetectedListener {
         override fun onFacesDetected(faces: List<Rectangle>, imageBytes: ByteArray) {
           if (faceDetectAction == null) {
-            defaultFacesDetectAction(TEST_OUTER_ID, faces, imageBytes)
+            defaultFacesDetectAction(FACESET_OUTER_ID, faces, imageBytes)
           } else {
             faceDetectAction.invoke(faces, imageBytes)
           }

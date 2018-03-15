@@ -1,5 +1,8 @@
 package com.kingyun.facedetector.http
 
+import com.kingyun.facedetector.ApiKeyPart
+import com.kingyun.facedetector.ApiSecretPart
+import com.kingyun.facedetector.FilePart
 import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.http.Multipart

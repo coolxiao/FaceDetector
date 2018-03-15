@@ -7,7 +7,7 @@ import android.widget.EditText
 import android.widget.Toast
 import com.kingyun.facedetector.FaceDetector
 import com.kingyun.facedetector.FaceServer
-import com.kingyun.facedetector.http.HttpKt.TEST_OUTER_ID
+import com.kingyun.facedetector.FaceServer.FACESET_OUTER_ID
 import io.fotoapparat.view.CameraView
 import kotlinx.android.synthetic.main.activity_detect_face.camera_view
 import kotlinx.android.synthetic.main.activity_detect_face.detect_add_face
@@ -44,6 +44,7 @@ class FaceDetectActivity : AppCompatActivity() {
       faceDetector?.takePicture()?.whenAvailable { file -> addFace(file) }
     }
     detect_flip.setOnClickListener { faceDetector?.switchToBack() }
+//    FaceServer.init("Jdhxxd5nyk0cSVPDdGshrryLeCxc0u0O", "iBWmxVYQXqws5aqBB9lVUBTKmj1bWf6O")
   }
 
   override fun onStart() {
@@ -52,7 +53,7 @@ class FaceDetectActivity : AppCompatActivity() {
       faceDetector = FaceDetector(this).apply {
         initCamera(camera_view as CameraView) { list, bytes ->
           // TODO: 18-3-8 该回调可以不实现，默认会调用
-          defaultFacesDetectAction(TEST_OUTER_ID, list, bytes)
+          defaultFacesDetectAction(FACESET_OUTER_ID, list, bytes)
         }
       }
     }
