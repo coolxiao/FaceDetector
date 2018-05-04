@@ -1,13 +1,14 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-  ext.mvnUrl = "http://192.168.0.186:8081/nexus/content/groups/android/"
   ext.kotlin_version = '1.2.30'
   ext.sdk_version = 27
   ext.min_sdk_version = 16
   ext.support_library = "27.1.0"
   repositories {
-    maven { url "$mvnUrl" }
+    maven {
+      url  "http://dl.bintray.com/fotoapparat/fotoapparat"
+    }
     google()
     jcenter()
   }
@@ -19,7 +20,9 @@ buildscript {
 
 allprojects {
   repositories {
-    maven { url "$mvnUrl" }
+    maven {
+      url  "http://dl.bintray.com/fotoapparat/fotoapparat"
+    }
     google()
     jcenter()
     maven { url 'https://jitpack.io' }

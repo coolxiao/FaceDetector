@@ -17,7 +17,6 @@ android {
     targetSdkVersion sdk_version
     versionCode gitCount
     versionName "1.0.6"
-
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
 
@@ -48,46 +47,6 @@ dependencies {
     exclude group: "com.android.support"
   }
 
-  api 'io.fotoapparat.fotoapparat:library:2.2.0'
-  api 'com.kingyun:io.fotoapparat.facedetector:1.0.0'
-}
-
-repositories {
-  maven() { url "${nexus_public}" }
-}
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      repository(url: "${nexus_releases}") {
-        authentication(userName: nexusUsername, password: nexusPassword)
-        pom.groupId = lib_groupId
-        pom.artifactId = lib_artifactId
-        pom.version = android.defaultConfig.versionName
-      }
-      snapshotRepository(url: "${nexus_snapshots}") {
-        authentication(userName: nexusUsername, password: nexusPassword)
-        pom.groupId = lib_groupId
-        pom.artifactId = lib_artifactId
-        pom.version = android.defaultConfig.versionName
-      }
-    }
-  }
-}
-task sourcesJar(type: Jar) {
-  from android.sourceSets.main.java.srcDirs
-  classifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-  source = android.sourceSets.main.java.srcDirs
-  classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier = 'javadoc'
-  from javadoc.destinationDir
-}
-
-artifacts {
-  archives sourcesJar
+  implementation 'io.fotoapparat.fotoapparat:library:2.2.0'
+  implementation 'io.fotoapparat:facedetector:1.0.0'
 }
