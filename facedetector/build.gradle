@@ -47,6 +47,6 @@ dependencies {
     exclude group: "com.android.support"
   }
 
-  implementation 'io.fotoapparat.fotoapparat:library:2.2.0'
-  implementation 'io.fotoapparat:facedetector:1.0.0'
+  api 'io.fotoapparat.fotoapparat:library:2.3.1'
+  api 'io.fotoapparat:facedetector:1.0.0'
 }
